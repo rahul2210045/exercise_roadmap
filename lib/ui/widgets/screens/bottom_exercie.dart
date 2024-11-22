@@ -144,13 +144,13 @@ class _ExerciseBottomSheetState extends State<ExerciseBottomSheet> {
                   //         Navigator.pop(context); // Close bottom sheet
                   //       }
                   //     : null,
-                  onPressed: selectedExerciseIndex != null
+                 onPressed: selectedExerciseIndex != null
     ? () {
         final selectedExercise = exercises[selectedExerciseIndex!];
         final exerciseName = selectedExercise['name'];
 
-        // Fetch questions from the database
-        final List<dynamic> selectedQuestions = selectedExercise['questions'] ?? [];
+        // Fetch questions from the database or map
+        final List<dynamic> selectedQuestions = List.from(selectedExercise['questions'] ?? []);
 
         if (selectedQuestions.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -161,24 +161,17 @@ class _ExerciseBottomSheetState extends State<ExerciseBottomSheet> {
           return; // Stop execution if no questions are found
         }
 
-        // Ensure questions are loaded before navigating
-        widget.onStartQuiz(widget.day, exerciseName, selectedQuestions);
-
         // Pass questions correctly to GrammarPracticeScreen
-        Future.delayed(const Duration(milliseconds: 300), () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GrammarPracticeScreen(
-                day: widget.day,
-                exerciseName: exerciseName,
-                questions: selectedQuestions,
-              ),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GrammarPracticeScreen(
+              day: widget.day,
+              exerciseName: exerciseName,
+              questions: selectedQuestions, // Ensure questions are passed
             ),
-          );
-        });
-
-        Navigator.pop(context); // Close bottom sheet
+          ),
+        ).then((_) => Navigator.pop(context)); // Close bottom sheet after navigation
       }
     : null,
 

@@ -17,8 +17,7 @@ class GrammarPracticeScreen extends StatefulWidget {
 }
 
 class _GrammarPracticeScreenState extends State<GrammarPracticeScreen> {
-  late List<Map<String, dynamic>> questions;
-
+  late List<Map<String, dynamic>> questions = [];
  @override
 void initState() {
   super.initState();
