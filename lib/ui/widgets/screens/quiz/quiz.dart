@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:exercise_roadmap/data/roadmap_data.dart';
 
 class GrammarPracticeScreen extends StatefulWidget {
+   final String day;
+  final String exerciseName;
+  final List<dynamic> questions;
+
+  const GrammarPracticeScreen({
+    Key? key,
+    required this.day,
+    required this.exerciseName,
+    required this.questions,
+  }) : super(key: key);
   @override
   _GrammarPracticeScreenState createState() => _GrammarPracticeScreenState();
 }
@@ -9,17 +19,25 @@ class GrammarPracticeScreen extends StatefulWidget {
 class _GrammarPracticeScreenState extends State<GrammarPracticeScreen> {
   late List<Map<String, dynamic>> questions;
 
-  @override
-  void initState() {
-    super.initState();
-    // Use the data imported from roadmap_data.dart
-    questions = transformExerciseData(roadmapData);
-  }
+ @override
+void initState() {
+  super.initState();
+  print("GrammarPracticeScreen initialized");
+  print("Day: ${widget.day}");
+  print("Exercise Name: ${widget.exerciseName}");
+  print("Questions: ${widget.questions}");
+}
+
 
   // Transform the imported roadmapData into a usable format
-  List<Map<String, dynamic>> transformExerciseData(
-      Map<String, dynamic> exerciseData) {
+  List<Map<String, dynamic>> transformExerciseData(Map<String, dynamic> exerciseData) {
     List<Map<String, dynamic>> questions = [];
+    
+    // If the roadmap data is empty, log an error and return an empty list
+    if (exerciseData.isEmpty) {
+      print("Error: roadmapData is empty.");
+      return questions;
+    }
 
     exerciseData.forEach((day, topics) {
       // Iterate through each category (Adjectives, Adverbs, etc.)
@@ -30,8 +48,7 @@ class _GrammarPracticeScreenState extends State<GrammarPracticeScreen> {
             "topic": topic,
             "days": [
               {
-                "day": int.parse(day.replaceAll(
-                    RegExp(r'[^0-9]'), '')), // Extract numeric day
+                "day": int.parse(day.replaceAll(RegExp(r'[^0-9]'), '')), // Extract numeric day
                 "questions": questionSet['questions'].map((question) {
                   return {
                     "question": question['question'],
@@ -57,11 +74,28 @@ class _GrammarPracticeScreenState extends State<GrammarPracticeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (questions.isEmpty) {
+       print("No questions available for this exercise.");
+      // Display a loading or error message if questions are empty
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          title: const Text("Grammar Practice"),
+        ),
+        body: const Center(
+          child: Text(
+            "No questions available.",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+        ),
+      );
+    }
+
     // Extract current day and question
     final currentDay = questions[currentDayIndex]['days'][0];
-
-    final currentQuestion =
-        currentDay['questions'][currentQuestionIndex] as Map<String, dynamic>;
+    final currentQuestion = currentDay['questions'][currentQuestionIndex] as Map<String, dynamic>;
 
     // Calculate progress
     final totalQuestions = currentDay['questions'].length;

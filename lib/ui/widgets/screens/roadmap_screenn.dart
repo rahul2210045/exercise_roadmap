@@ -1,7 +1,8 @@
 import 'dart:math';
+import 'package:exercise_roadmap/data/roadmap_data.dart';
+import 'package:exercise_roadmap/ui/widgets/screens/bottom_exercie.dart';
+import 'package:exercise_roadmap/ui/widgets/screens/quiz/quiz.dart';
 import 'package:flutter/material.dart';
-
-
 
 class RoadmapScreen extends StatefulWidget {
   @override
@@ -22,8 +23,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   // Generate random horizontal positions for nodes while maintaining vertical spacing
   void generateNodePositions() {
     final random = Random();
-    final screenWidth = 360.0; // Placeholder width for random horizontal positions
-    final spacing = 150.0; // Vertical spacing between nodes
+    const screenWidth = 360.0; // Placeholder width for random horizontal positions
+    const spacing = 150.0; // Vertical spacing between nodes
     for (int i = 0; i < totalDays; i++) {
       final x = random.nextDouble() * (screenWidth - 80) + 40; // Ensure padding
       final y = spacing * i + 50;
@@ -36,7 +37,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Hey Mahesh", style: TextStyle(color: Colors.white)),
+        title: const Text("Hey Mahesh", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -60,7 +61,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               child: GestureDetector(
                 onTap: () {
                   if (index <= unlockedDay) {
-                    _showExerciseBottomSheet(context, index);
+                    _showExerciseBottomSheet(context, 'Day $index');
                   }
                 },
                 child: NodeWidget(
@@ -77,23 +78,31 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   }
 
   // Show the exercise bottom sheet for the selected day
-  void _showExerciseBottomSheet(BuildContext context, int day) {
+  void _showExerciseBottomSheet(BuildContext context, String day) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.black,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
       builder: (context) {
         return ExerciseBottomSheet(
-          day: day,
-          onCompleteExercise: (completedDay) {
-            if (completedDay == unlockedDay) {
-              setState(() {
-                unlockedDay++;
-              });
-            }
+          day: day, // Pass the selected day as a string
+          onStartQuiz: (selectedDay, exerciseName, questions) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return GrammarPracticeScreen(
+                    day: selectedDay,
+                    exerciseName: exerciseName,
+                    questions: questions,
+                  );
+                },
+              ),
+            );
+            print("Navigation to GrammarPracticeScreen triggered");
           },
         );
       },
@@ -138,16 +147,16 @@ class NodeWidget extends StatelessWidget {
           ),
           child: Text(
             "Day $index",
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Text(
           isCompleted ? "✔" : "",
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
       ],
     );
@@ -191,153 +200,3 @@ class PathPainter extends CustomPainter {
 }
 
 // Bottom Sheet for displaying exercises
-class ExerciseBottomSheet extends StatelessWidget {
-  final int day;
-  final Function(int) onCompleteExercise;
-
-  ExerciseBottomSheet({required this.day, required this.onCompleteExercise});
-
-  @override
-  Widget build(BuildContext context) {
-    final exercises = [
-      {"name": "Pronouns", "score": "4/5", "completed": true},
-      {"name": "Adjectives", "score": "3/5", "completed": false},
-    ];
-
-    return DraggableScrollableSheet(
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                "Choose Exercise",
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: exercises.length,
-                  itemBuilder: (context, index) {
-                    final exercise = exercises[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ExerciseCard(
-                        name: exercise["name"]! as String,
-                        score: exercise["score"]! as String,
-                        isCompleted: exercise["completed"]! as bool,
-                        onTap: () {
-                          if (!(exercise["completed"] as bool)) {
-                            onCompleteExercise(day);
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-              SizedBox(height: 16),
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40.0, vertical: 10.0),
-                    child: Text(
-                      "Start Practice",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class ExerciseCard extends StatelessWidget {
-  final String name;
-  final String score;
-  final bool isCompleted;
-  final VoidCallback onTap;
-
-  const ExerciseCard({
-    required this.name,
-    required this.score,
-    required this.isCompleted,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: isCompleted ? Colors.green : Colors.purple,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: isCompleted ? Colors.greenAccent : Colors.grey,
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/avatar.png'), // Placeholder
-              radius: 20,
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                name,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            Text(
-              score,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
